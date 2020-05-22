@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=missing-docstring,protected-access
+
 import pytest
 
 from ibm_cloud_sdk_core.token_manager import TokenManager
