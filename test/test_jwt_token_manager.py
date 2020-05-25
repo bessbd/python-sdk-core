@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring,protected-access
+# pylint: disable=missing-docstring,protected-access,abstract-class-instantiated
 import time
 import threading
 from typing import Optional

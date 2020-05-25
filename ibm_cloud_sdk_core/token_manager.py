@@ -14,12 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=too-many-instance-attributes
-
 
 from abc import ABC, abstractmethod
 from threading import Lock
-from typing import Optional, Tuple
+
 import time
 import requests
 
@@ -39,16 +37,13 @@ class TokenManager(ABC):
     Keyword Args:
         disable_ssl_verification: A flag that indicates whether verification of
             the server's SSL certificate should be disabled or not. Defaults to False.
-        token_name: The key that maps to the token in the dictionary returned from request_token. Defaults to None.
 
     Attributes:
         url (str): The url to request tokens from.
         disable_ssl_verification (bool): A flag that indicates whether verification of
         the server's SSL certificate should be disabled or not.
-        token_name (str): The key used of the token in the dict returned from request_token.
-        token_info (dict): The most token_response from request_token.
-        expire_time (int): The time in epoch seconds when the current token within token_info will expire.
-        refresh_time (int): The time in epoch seconds when the current token within token_info should be refreshed.
+        expire_time (int): The time in epoch seconds when the current stored token will expire.
+        refresh_time (int): The time in epoch seconds when the current stored token should be refreshed.
         request_time (int): The time the last outstanding token request was issued
         lock (Lock): Lock variable to serialize access to refresh/request times
         http_config (dict): A dictionary containing values that control the timeout, proxies, and etc of HTTP requests.
@@ -58,12 +53,10 @@ class TokenManager(ABC):
             self,
             url: str,
             *,
-            disable_ssl_verification: bool = False,
-            token_name: Optional[str] = None) -> None:
+            disable_ssl_verification: bool = False
+    ):
         self.url = url
         self.disable_ssl_verification = disable_ssl_verification
-        self.token_name = token_name
-        self.token_info = {}
         self.expire_time = 0
         self.refresh_time = 0
         self.request_time = 0
@@ -89,14 +82,6 @@ class TokenManager(ABC):
             self._save_token_info(token_response)
 
         return self.extract_token_from_stored_response()
-
-    def extract_token_from_stored_response(self):
-        """Get the token from the stored response
-
-        Returns:
-            str: The stored access token
-        """
-        return self.token_info.get(self.token_name)
 
     def set_disable_ssl_verification(self, status: bool = False) -> None:
         """Sets the ssl verification to enabled or disabled.
@@ -142,7 +127,7 @@ class TokenManager(ABC):
             # Sleep for 0.5 seconds before checking token again
             time.sleep(0.5)
 
-    @abstractmethod
+    @abstractmethod  # pragma: no cover
     def request_token(self) -> None:
         """Should be overridden by child classes."""
         pass
@@ -181,7 +166,8 @@ class TokenManager(ABC):
 
         return needs_refresh
 
-    def _save_token_info(self, token_response: dict) -> None:
+    @abstractmethod
+    def _save_token_info(self, token_response: dict) -> None:  # pragma: no cover
         """
         Decode the access token and save the response from the service to the object's state
 
@@ -193,9 +179,7 @@ class TokenManager(ABC):
         token_response : dict
             Response from token service
         """
-        self.token_info = token_response
-        exp, ttl = self.extract_exp_and_ttl(token_response)
-        self._set_expire_and_refresh_time(exp, ttl)
+        pass
 
     def _request_raw(self,
                      method,
@@ -231,9 +215,10 @@ class TokenManager(ABC):
         self.refresh_time = self.expire_time - buffer
 
     @abstractmethod
-    def extract_exp_and_ttl(self, token_response) -> Tuple[int, int]:
-        """Should be overridden by child classes.
+    def extract_token_from_stored_response(self):  # pragma: no cover
+        """Get the token from the stored response
+
         Returns:
-            (int, int): Unix epoch values of token expiration and ttl, respectively.
+            The stored access token
         """
         pass

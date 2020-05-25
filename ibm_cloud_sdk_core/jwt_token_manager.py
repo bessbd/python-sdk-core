@@ -13,11 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import jwt
 
 from .token_manager import TokenManager
+
+
+# pylint: disable=too-many-instance-attributes
 
 
 class JWTTokenManager(TokenManager, ABC):
@@ -41,22 +46,43 @@ class JWTTokenManager(TokenManager, ABC):
         the server's SSL certificate should be disabled or not.
         token_name (str): The key used of the token in the dict returned from request_token.
         token_info (dict): The most token_response from request_token.
-        expire_time (int): The time in epoch seconds when the current token within token_info will expire.
-        refresh_time (int): The time in epoch seconds when the current token within token_info should be refreshed.
-        request_time (int): The time the last outstanding token request was issued
-        lock (Lock): Lock variable to serialize access to refresh/request times
-        http_config (dict): A dictionary containing values that control the timeout, proxies, and etc of HTTP requests.
     """
 
-    def extract_exp_and_ttl(self, token_response):
+    def __init__(self, url: str, *, disable_ssl_verification: bool = False, token_name: Optional[str] = None):
+        super().__init__(url, disable_ssl_verification=disable_ssl_verification)
+        self.token_name = token_name
+        self.token_info = {}
+
+    def _save_token_info(self, token_response: dict) -> None:
+        """
+        Decode the access token and save the response from the JWT service to the object's state
+        Refresh time is set to approximately 80% of the token's TTL to ensure that
+        the token refresh completes before the current token expires.
+        Parameters
+        ----------
+        token_response : dict
+            Response from token service
+        """
+        self.token_info = token_response
         access_token = token_response.get(self.token_name)
+
         # The time of expiration is found by decoding the JWT access token
         decoded_response = jwt.decode(access_token, verify=False)
         # exp is the time of expire and iat is the time of token retrieval
         exp = decoded_response.get('exp')
         iat = decoded_response.get('iat')
-        ttl = (exp - iat)
-        return exp, ttl
+
+        buffer = (exp - iat)
+
+        self._set_expire_and_refresh_time(exp, buffer)
+
+    def extract_token_from_stored_response(self):
+        """Get the token from the stored response
+
+        Returns:
+            str: The stored access token
+        """
+        return self.token_info.get(self.token_name)
 
     def _request(self,
                  method,
@@ -71,7 +97,7 @@ class JWTTokenManager(TokenManager, ABC):
                                  auth_tuple=auth_tuple, **kwargs).json()
 
     @abstractmethod
-    def request_token(self) -> None:
+    def request_token(self) -> None:  # pragma: no cover
         """Should be overridden by child classes.
         """
         pass

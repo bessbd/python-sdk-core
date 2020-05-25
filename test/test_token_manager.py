@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=missing-docstring,protected-access
+# pylint: disable=missing-docstring,protected-access,abstract-class-instantiated
 
 import pytest
 
@@ -26,4 +26,6 @@ def test_abstract_class_instantiation():
         TokenManager(None)
     assert str(err.value) == "Can't instantiate abstract class " \
                              "TokenManager with abstract methods " \
-                             "extract_exp_and_ttl, request_token"
+                             "_save_token_info, " \
+                             "extract_token_from_stored_response, " \
+                             "request_token"
