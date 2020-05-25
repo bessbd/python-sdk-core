@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import jwt
 
@@ -70,12 +70,8 @@ class JWTTokenManager(TokenManager, ABC):
         return self._request_raw(method, url, headers=headers, params=params, data=data,
                                  auth_tuple=auth_tuple, **kwargs).json()
 
+    @abstractmethod
     def request_token(self) -> None:
         """Should be overridden by child classes.
-
-        Raises:
-            NotImplementedError: Thrown when called.
         """
-        raise NotImplementedError(
-            'request_token MUST be overridden by a subclass of JWTTokenManager.'
-        )
+        pass

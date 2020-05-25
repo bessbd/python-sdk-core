@@ -17,9 +17,9 @@
 # pylint: disable=too-many-instance-attributes
 
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from threading import Lock
-from typing import Optional
+from typing import Optional, Tuple
 import time
 import requests
 
@@ -142,15 +142,10 @@ class TokenManager(ABC):
             # Sleep for 0.5 seconds before checking token again
             time.sleep(0.5)
 
+    @abstractmethod
     def request_token(self) -> None:
-        """Should be overridden by child classes.
-
-        Raises:
-            NotImplementedError: Thrown when called.
-        """
-        raise NotImplementedError(
-            'request_token MUST be overridden by a subclass of TokenManager.'
-        )
+        """Should be overridden by child classes."""
+        pass
 
     @staticmethod
     def _get_current_time() -> int:
@@ -235,12 +230,10 @@ class TokenManager(ABC):
         buffer = ttl * 0.2
         self.refresh_time = self.expire_time - buffer
 
-    def extract_exp_and_ttl(self, token_response):
+    @abstractmethod
+    def extract_exp_and_ttl(self, token_response) -> Tuple[int, int]:
         """Should be overridden by child classes.
-
-        Raises:
-            NotImplementedError: Thrown when called.
+        Returns:
+            (int, int): Unix epoch values of token expiration and ttl, respectively.
         """
-        raise NotImplementedError(
-            'extract_exp_and_ttl MUST be overridden by a subclass of TokenManager.'
-        )
+        pass

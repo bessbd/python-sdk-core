@@ -21,15 +21,9 @@ import pytest
 from ibm_cloud_sdk_core.token_manager import TokenManager
 
 
-def test_request_token_not_implemented_error():
-    with pytest.raises(NotImplementedError) as err:
-        token_manager = TokenManager(None)
-        token_manager.request_token()
-    assert str(err.value) == 'request_token MUST be overridden by a subclass of TokenManager.'
-
-
-def test_extract_exp_and_ttl_not_implemented_error():
-    with pytest.raises(NotImplementedError) as err:
-        token_manager = TokenManager(None)
-        token_manager.extract_exp_and_ttl(None)
-    assert str(err.value) == 'extract_exp_and_ttl MUST be overridden by a subclass of TokenManager.'
+def test_abstract_class_instantiation():
+    with pytest.raises(TypeError) as err:
+        TokenManager(None)
+    assert str(err.value) == "Can't instantiate abstract class " \
+                             "TokenManager with abstract methods " \
+                             "extract_exp_and_ttl, request_token"
