@@ -212,8 +212,3 @@ class TokenManager(ABC):
             return response
 
         raise ApiException(response.status_code, http_response=response)
-
-    def _set_expire_and_refresh_time(self, exp, ttl):
-        self.expire_time = exp
-        buffer = ttl * 0.2
-        self.refresh_time = self.expire_time - buffer

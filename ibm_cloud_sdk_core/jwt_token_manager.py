@@ -72,8 +72,9 @@ class JWTTokenManager(TokenManager, ABC):
         exp = decoded_response.get('exp')
         iat = decoded_response.get('iat')
 
-        buffer = (exp - iat)
-        self._set_expire_and_refresh_time(exp, buffer)
+        self.expire_time = exp
+        buffer = (exp - iat) * 0.2
+        self.refresh_time = self.expire_time - buffer
 
     def _request(self,
                  method,
