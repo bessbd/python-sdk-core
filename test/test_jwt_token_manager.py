@@ -51,7 +51,7 @@ def _get_current_time() -> int:
 def test_get_token():
     url = "https://iam.cloud.ibm.com/identity/token"
     token_manager = JWTTokenManagerMockImpl(url)
-    token = token_manager.get_token()
+    old_token = token_manager.get_token()
     assert token_manager.token_info.get('expires_in') == 3600
     assert token_manager._is_token_expired() is False
 
@@ -62,7 +62,7 @@ def test_get_token():
                                 "refresh_token": "jy4gl91BQ"
                                }
     token = token_manager.get_token()
-    assert token == "old_dummy"
+    assert token == old_token
 
     # expired token:
     token_manager.expire_time = _get_current_time() - 300

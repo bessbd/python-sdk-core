@@ -27,5 +27,4 @@ def test_abstract_class_instantiation():
     assert str(err.value) == "Can't instantiate abstract class " \
                              "TokenManager with abstract methods " \
                              "_save_token_info, " \
-                             "extract_token_from_stored_response, " \
                              "request_token"

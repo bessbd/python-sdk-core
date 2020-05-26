@@ -24,6 +24,8 @@ import requests
 from .api_exception import ApiException
 
 
+# pylint: disable=too-many-instance-attributes
+
 class TokenManager(ABC):
     """An abstract class to contain functionality for parsing, storing, and requesting tokens.
 
@@ -47,6 +49,7 @@ class TokenManager(ABC):
         request_time (int): The time the last outstanding token request was issued
         lock (Lock): Lock variable to serialize access to refresh/request times
         http_config (dict): A dictionary containing values that control the timeout, proxies, and etc of HTTP requests.
+        access_token (str): The latest stored access token
     """
 
     def __init__(
@@ -62,6 +65,7 @@ class TokenManager(ABC):
         self.request_time = 0
         self.lock = Lock()
         self.http_config = {}
+        self.access_token = None
 
     def get_token(self) -> str:
         """Get a token to be used for authentication.
@@ -81,7 +85,7 @@ class TokenManager(ABC):
             token_response = self.request_token()
             self._save_token_info(token_response)
 
-        return self.extract_token_from_stored_response()
+        return self.access_token
 
     def set_disable_ssl_verification(self, status: bool = False) -> None:
         """Sets the ssl verification to enabled or disabled.
@@ -213,12 +217,3 @@ class TokenManager(ABC):
         self.expire_time = exp
         buffer = ttl * 0.2
         self.refresh_time = self.expire_time - buffer
-
-    @abstractmethod
-    def extract_token_from_stored_response(self):  # pragma: no cover
-        """Get the token from the stored response
-
-        Returns:
-            The stored access token
-        """
-        pass

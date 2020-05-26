@@ -64,25 +64,16 @@ class JWTTokenManager(TokenManager, ABC):
             Response from token service
         """
         self.token_info = token_response
-        access_token = token_response.get(self.token_name)
+        self.access_token = token_response.get(self.token_name)
 
         # The time of expiration is found by decoding the JWT access token
-        decoded_response = jwt.decode(access_token, verify=False)
+        decoded_response = jwt.decode(self.access_token, verify=False)
         # exp is the time of expire and iat is the time of token retrieval
         exp = decoded_response.get('exp')
         iat = decoded_response.get('iat')
 
         buffer = (exp - iat)
-
         self._set_expire_and_refresh_time(exp, buffer)
-
-    def extract_token_from_stored_response(self):
-        """Get the token from the stored response
-
-        Returns:
-            str: The stored access token
-        """
-        return self.token_info.get(self.token_name)
 
     def _request(self,
                  method,
