@@ -18,7 +18,8 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import jwt
-
+import requests
+from .api_exception import ApiException
 from .token_manager import TokenManager
 
 
@@ -85,8 +86,24 @@ class JWTTokenManager(TokenManager, ABC):
                  data=None,
                  auth_tuple=None,
                  **kwargs) -> dict:
-        return self._request_raw(method, url, headers=headers, params=params, data=data,
-                                 auth_tuple=auth_tuple, **kwargs).json()
+        kwargs = dict({"timeout": 60}, **kwargs)
+        kwargs = dict(kwargs, **self.http_config)
+
+        if self.disable_ssl_verification:
+            kwargs['verify'] = False
+
+        response = requests.request(
+            method=method,
+            url=url,
+            headers=headers,
+            params=params,
+            data=data,
+            auth=auth_tuple,
+            **kwargs)
+        if 200 <= response.status_code <= 299:
+            return response.json()
+
+        raise ApiException(response.status_code, http_response=response)
 
     @abstractmethod
     def request_token(self) -> None:  # pragma: no cover

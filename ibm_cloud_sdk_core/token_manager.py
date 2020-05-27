@@ -185,15 +185,15 @@ class TokenManager(ABC):
         """
         pass
 
-    def _request_raw(self,
-                     method,
-                     url,
-                     *,
-                     headers=None,
-                     params=None,
-                     data=None,
-                     auth_tuple=None,
-                     **kwargs):
+    def _request(self,
+                 method,
+                 url,
+                 *,
+                 headers=None,
+                 params=None,
+                 data=None,
+                 auth_tuple=None,
+                 **kwargs):
         kwargs = dict({"timeout": 60}, **kwargs)
         kwargs = dict(kwargs, **self.http_config)
 
