@@ -104,9 +104,3 @@ class JWTTokenManager(TokenManager, ABC):
             return response.json()
 
         raise ApiException(response.status_code, http_response=response)
-
-    @abstractmethod
-    def request_token(self) -> None:  # pragma: no cover
-        """Should be overridden by child classes.
-        """
-        pass
