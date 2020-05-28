@@ -15,10 +15,26 @@
 # limitations under the License.
 
 # pylint: disable=missing-docstring,protected-access,abstract-class-instantiated
+from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 
+from ibm_cloud_sdk_core import ApiException
 from ibm_cloud_sdk_core.token_manager import TokenManager
+
+
+class MockTokenManager(TokenManager):
+
+    def request_token(self) -> None:
+        response = self._request(
+            method='GET',
+            url=self.url
+        )
+        return response
+
+    def _save_token_info(self, token_response: dict) -> None:
+        pass
 
 
 def test_abstract_class_instantiation():
@@ -28,3 +44,24 @@ def test_abstract_class_instantiation():
                              "TokenManager with abstract methods " \
                              "_save_token_info, " \
                              "request_token"
+
+
+def requests_request_spy(*args, **kwargs):
+    return SimpleNamespace(status_code=200, request_args=args, request_kwargs=kwargs)
+
+
+@mock.patch('requests.request', side_effect=requests_request_spy)
+def test_request_passes_disable_ssl_verification(request):  # pylint: disable=unused-argument
+    mock_token_manager = MockTokenManager(url="https://example.com", disable_ssl_verification=True)
+    assert mock_token_manager.request_token().request_kwargs['verify'] is False
+
+
+def requests_request_error_mock(*args, **kwargs):  # pylint: disable=unused-argument
+    return SimpleNamespace(status_code=300, headers={}, text="")
+
+
+@mock.patch('requests.request', side_effect=requests_request_error_mock)
+def test_request_raises_for_non_2xx(request):  # pylint: disable=unused-argument
+    mock_token_manager = MockTokenManager(url="https://example.com", disable_ssl_verification=True)
+    with pytest.raises(ApiException):
+        mock_token_manager.request_token()
